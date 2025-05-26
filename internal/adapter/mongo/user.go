@@ -117,7 +117,7 @@ func (db *User) DeleteOne(ctx context.Context, filter model.UserFilter) (model.U
 		return model.User{}, err
 	}
 
-	err = db.col.FindOne(ctx, query).Decode(userDao)
+	err = db.col.FindOne(ctx, query).Decode(&userDao)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return model.User{}, model.ErrNotFound

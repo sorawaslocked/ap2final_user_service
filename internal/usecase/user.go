@@ -46,7 +46,7 @@ func (uc *User) Register(ctx context.Context, user model.User) (model.User, erro
 		return model.User{}, err
 	}
 
-	user.Password = hashedPassword
+	user.PasswordHash = hashedPassword
 
 	createdUser, err := uc.repo.InsertOne(ctx, user)
 	if err != nil {
@@ -208,7 +208,7 @@ func (uc *User) GetByID(ctx context.Context, token model.Token, id string) (mode
 		return model.User{}, err
 	}
 
-	if *claims.Role != "admin" || *claims.UserID != id {
+	if *claims.UserID != id && *claims.Role != "admin" {
 		err := model.ErrUnauthorized
 		log.Warn(
 			"checking claims",
@@ -270,7 +270,7 @@ func (uc *User) UpdateByID(
 		return model.User{}, err
 	}
 
-	if *claims.Role != "admin" || *claims.UserID != id {
+	if *claims.UserID != id && *claims.Role != "admin" {
 		err := model.ErrUnauthorized
 		log.Warn(
 			"checking claims",
@@ -357,7 +357,7 @@ func (uc *User) DeleteByID(ctx context.Context, token model.Token, id string) (m
 		return model.User{}, err
 	}
 
-	if *claims.Role != "admin" || *claims.UserID != id {
+	if *claims.UserID != id && *claims.Role != "admin" {
 		err := model.ErrUnauthorized
 		log.Warn(
 			"checking claims",

@@ -30,7 +30,7 @@ func ToUserUpdateFromUpdateRequest(req *svc.UpdateRequest) (
 	credentialsUpdate := model.UserCredentialUpdateData{}
 
 	if req.CurrentPassword != nil && req.NewPassword != nil {
-		credentialsUpdate.CurrentPassword = *req.NewPassword
+		credentialsUpdate.CurrentPassword = *req.CurrentPassword
 		credentialsUpdate.NewPassword = *req.NewPassword
 	} else if req.CurrentPassword == nil && req.NewPassword == nil {
 		credentialsUpdate.CurrentPassword = ""

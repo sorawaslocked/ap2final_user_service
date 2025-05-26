@@ -24,7 +24,7 @@ type User struct {
 
 func FromUser(user model.User) (User, error) {
 	objID, err := primitive.ObjectIDFromHex(user.ID)
-	if err != nil {
+	if err != nil && user.ID != "" {
 		return User{}, ErrInvalidID
 	}
 

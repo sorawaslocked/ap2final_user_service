@@ -19,6 +19,10 @@ func logError(log *slog.Logger, op string, err error) {
 		warn(log, op, err)
 	case errors.Is(err, dto.ErrUnauthenticated):
 		warn(log, op, err)
+	case errors.Is(err, model.ErrPasswordsDoNotMatch):
+		warn(log, op, err)
+	case errors.Is(err, model.ErrRefreshTokenExpired):
+		warn(log, op, err)
 	default:
 		log.Error(
 			fmt.Sprintf("user %s", op),

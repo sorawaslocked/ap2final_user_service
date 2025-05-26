@@ -23,6 +23,10 @@ func FromError(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, ErrUnauthenticated):
 		return status.Error(codes.Unauthenticated, err.Error())
+	case errors.Is(err, model.ErrPasswordsDoNotMatch):
+		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, model.ErrRefreshTokenExpired):
+		return status.Error(codes.DeadlineExceeded, err.Error())
 	default:
 		return status.Error(codes.Internal, "something went wrong")
 	}

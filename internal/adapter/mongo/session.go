@@ -22,7 +22,7 @@ func NewSession(conn *mongo.Database) *Session {
 }
 
 func (db *Session) InsertOne(ctx context.Context, session model.Session) error {
-	_, err := db.col.InsertOne(ctx, session)
+	_, err := db.col.InsertOne(ctx, dao.FromSession(session))
 
 	return err
 }
