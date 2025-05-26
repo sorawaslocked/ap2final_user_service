@@ -24,12 +24,14 @@ func New(
 	cfg grpccfg.Config,
 	log *slog.Logger,
 	userUseCase UserUseCase,
+	jwtProvider *security.JWTProvider,
 ) *Server {
 	server := &Server{
 		cfg:         cfg,
 		addr:        fmt.Sprintf(":%d", cfg.Port),
 		log:         log,
 		userUseCase: userUseCase,
+		jwtProvider: jwtProvider,
 	}
 
 	server.register()
