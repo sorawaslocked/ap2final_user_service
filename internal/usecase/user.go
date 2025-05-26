@@ -69,7 +69,7 @@ func (uc *User) Login(ctx context.Context, user model.User) (model.Token, error)
 		return model.Token{}, err
 	}
 
-	err = security.CheckPassword(userFromDb.Password, user.Password)
+	err = security.CheckPassword(user.Password, userFromDb.PasswordHash)
 	if err != nil {
 		err := model.ErrPasswordsDoNotMatch
 		log.Warn("checking password", logger.Err(err))
@@ -180,13 +180,202 @@ func (uc *User) RefreshToken(ctx context.Context, refreshToken string) (model.To
 }
 
 func (uc *User) GetByID(ctx context.Context, token model.Token, id string) (model.User, error) {
-	panic("implement me")
+	const op = "usecase.User.GetByID"
+
+	log := uc.log.With(slog.String("op", op))
+
+	claims, err := uc.jwtProvider.VerifyAndParseClaims(token.AccessToken)
+	if err != nil {
+		err := model.ErrInvalidToken
+		log.Warn(
+			"verifying token and parsing claims",
+			logger.Err(err),
+			slog.String("accessToken", token.AccessToken),
+		)
+
+		return model.User{}, err
+	}
+
+	if claims.UserID == nil || claims.Role == nil {
+		err := model.ErrEmptyClaims
+		log.Warn(
+			"checking claims",
+			logger.Err(err),
+			slog.String("accessToken", token.AccessToken),
+		)
+
+		return model.User{}, err
+	}
+
+	if *claims.Role != "admin" || *claims.UserID != id {
+		err := model.ErrUnauthorized
+		log.Warn(
+			"checking claims",
+			logger.Err(err),
+			slog.String("claimsUserID", *claims.UserID),
+			slog.String("claimsRole", *claims.Role),
+		)
+
+		return model.User{}, err
+	}
+
+	user, err := uc.repo.FindOne(ctx, model.UserFilter{ID: &id})
+	if err != nil {
+		log.Warn(
+			"finding user",
+			logger.Err(err),
+			slog.String("id", id),
+		)
+
+		return model.User{}, err
+	}
+
+	return user, nil
 }
 
-func (uc *User) Update(ctx context.Context, token model.Token, user model.User) (model.User, error) {
-	panic("implement me")
+func (uc *User) UpdateByID(
+	ctx context.Context,
+	token model.Token,
+	id string,
+	credentialsUpdate model.UserCredentialUpdateData,
+	update model.UserUpdateData,
+) (model.User, error) {
+	const op = "usecase.User.UpdateByID"
+
+	log := uc.log.With(slog.String("op", op))
+
+	update.UpdatedAt = time.Now().UTC()
+
+	claims, err := uc.jwtProvider.VerifyAndParseClaims(token.AccessToken)
+	if err != nil {
+		err := model.ErrInvalidToken
+		log.Warn(
+			"verifying token and parsing claims",
+			logger.Err(err),
+			slog.String("accessToken", token.AccessToken),
+		)
+
+		return model.User{}, err
+	}
+
+	if claims.UserID == nil || claims.Role == nil {
+		err := model.ErrEmptyClaims
+		log.Warn(
+			"checking claims",
+			logger.Err(err),
+			slog.String("accessToken", token.AccessToken),
+		)
+
+		return model.User{}, err
+	}
+
+	if *claims.Role != "admin" || *claims.UserID != id {
+		err := model.ErrUnauthorized
+		log.Warn(
+			"checking claims",
+			logger.Err(err),
+			slog.String("claimsUserID", *claims.UserID),
+			slog.String("claimsRole", *claims.Role),
+		)
+
+		return model.User{}, err
+	}
+
+	userFromDb, err := uc.repo.FindOne(ctx, model.UserFilter{ID: &id})
+	if err != nil {
+		log.Warn(
+			"finding user",
+			logger.Err(err),
+			slog.String("id", id),
+		)
+
+		return model.User{}, err
+	}
+
+	err = security.CheckPassword(credentialsUpdate.CurrentPassword, userFromDb.PasswordHash)
+	if err != nil {
+		err := model.ErrPasswordsDoNotMatch
+		log.Warn("checking passwords", logger.Err(err))
+
+		return model.User{}, err
+	}
+
+	hashedPassword, err := security.HashPassword(credentialsUpdate.NewPassword)
+	if err != nil {
+		log.Warn("hashing password", logger.Err(err))
+
+		return model.User{}, err
+	}
+	update.PasswordHash = &hashedPassword
+
+	updateUser, err := uc.repo.UpdateOne(
+		ctx,
+		model.UserFilter{ID: &id},
+		update,
+	)
+	if err != nil {
+		log.Warn(
+			"updating user",
+			logger.Err(err),
+			slog.String("id", id),
+		)
+
+		return model.User{}, err
+	}
+
+	return updateUser, nil
 }
 
 func (uc *User) DeleteByID(ctx context.Context, token model.Token, id string) (model.User, error) {
-	panic("implement me")
+	const op = "usecase.User.DeleteByID"
+
+	log := uc.log.With(slog.String("op", op))
+
+	claims, err := uc.jwtProvider.VerifyAndParseClaims(token.AccessToken)
+	if err != nil {
+		err := model.ErrInvalidToken
+		log.Warn(
+			"verifying token and parsing claims",
+			logger.Err(err),
+			slog.String("accessToken", token.AccessToken),
+		)
+
+		return model.User{}, err
+	}
+
+	if claims.UserID == nil || claims.Role == nil {
+		err := model.ErrEmptyClaims
+		log.Warn(
+			"checking claims",
+			logger.Err(err),
+			slog.String("accessToken", token.AccessToken),
+		)
+
+		return model.User{}, err
+	}
+
+	if *claims.Role != "admin" || *claims.UserID != id {
+		err := model.ErrUnauthorized
+		log.Warn(
+			"checking claims",
+			logger.Err(err),
+			slog.String("claimsUserID", *claims.UserID),
+			slog.String("claimsRole", *claims.Role),
+		)
+
+		return model.User{}, err
+	}
+
+	deletedUser, err := uc.repo.DeleteOne(ctx, model.UserFilter{ID: &id})
+	if err != nil {
+		log.Warn(
+			"deleting user",
+			logger.Err(err),
+			slog.String("id", id),
+		)
+
+		return model.User{}, err
+	}
+
+	return deletedUser, nil
 }

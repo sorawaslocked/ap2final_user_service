@@ -9,7 +9,7 @@ type UserRepository interface {
 	InsertOne(ctx context.Context, user model.User) (model.User, error)
 	FindOne(ctx context.Context, filter model.UserFilter) (model.User, error)
 	FindMany(ctx context.Context, filter model.UserFilter) ([]model.User, error)
-	UpdateOne(ctx context.Context, filter model.UserFilter, update model.User) (model.User, error)
+	UpdateOne(ctx context.Context, filter model.UserFilter, update model.UserUpdateData) (model.User, error)
 	DeleteOne(ctx context.Context, filter model.UserFilter) (model.User, error)
 }
 

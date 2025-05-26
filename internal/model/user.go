@@ -24,7 +24,6 @@ type UserFilter struct {
 	LastName     *string
 	Email        *string
 	PhoneNumber  *string
-	Password     *string
 	PasswordHash *string
 	Role         *string
 
@@ -32,14 +31,19 @@ type UserFilter struct {
 	IsActive  *bool
 }
 
+type UserCredentialUpdateData struct {
+	CurrentPassword string
+	NewPassword     string
+}
+
 type UserUpdateData struct {
 	FirstName    *string
 	LastName     *string
 	Email        *string
 	PhoneNumber  *string
-	Password     *string
 	PasswordHash *string
 	Role         *string
+	UpdatedAt    time.Time
 
 	IsDeleted *bool
 	IsActive  *bool
