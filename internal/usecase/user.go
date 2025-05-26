@@ -37,6 +37,7 @@ func (uc *User) Register(ctx context.Context, user model.User) (model.User, erro
 
 	user.CreatedAt = time.Now().UTC()
 	user.UpdatedAt = time.Now().UTC()
+	user.Role = "user"
 
 	hashedPassword, err := security.HashPassword(user.Password)
 	if err != nil {
@@ -281,34 +282,36 @@ func (uc *User) UpdateByID(
 		return model.User{}, err
 	}
 
-	userFromDb, err := uc.repo.FindOne(ctx, model.UserFilter{ID: &id})
-	if err != nil {
-		log.Warn(
-			"finding user",
-			logger.Err(err),
-			slog.String("id", id),
-		)
+	if credentialsUpdate.CurrentPassword != "" && credentialsUpdate.NewPassword != "" {
+		userFromDb, err := uc.repo.FindOne(ctx, model.UserFilter{ID: &id})
+		if err != nil {
+			log.Warn(
+				"finding user",
+				logger.Err(err),
+				slog.String("id", id),
+			)
 
-		return model.User{}, err
+			return model.User{}, err
+		}
+
+		err = security.CheckPassword(credentialsUpdate.CurrentPassword, userFromDb.PasswordHash)
+		if err != nil {
+			err := model.ErrPasswordsDoNotMatch
+			log.Warn("checking passwords", logger.Err(err))
+
+			return model.User{}, err
+		}
+
+		hashedPassword, err := security.HashPassword(credentialsUpdate.NewPassword)
+		if err != nil {
+			log.Warn("hashing password", logger.Err(err))
+
+			return model.User{}, err
+		}
+		update.PasswordHash = &hashedPassword
 	}
 
-	err = security.CheckPassword(credentialsUpdate.CurrentPassword, userFromDb.PasswordHash)
-	if err != nil {
-		err := model.ErrPasswordsDoNotMatch
-		log.Warn("checking passwords", logger.Err(err))
-
-		return model.User{}, err
-	}
-
-	hashedPassword, err := security.HashPassword(credentialsUpdate.NewPassword)
-	if err != nil {
-		log.Warn("hashing password", logger.Err(err))
-
-		return model.User{}, err
-	}
-	update.PasswordHash = &hashedPassword
-
-	updateUser, err := uc.repo.UpdateOne(
+	updatedUser, err := uc.repo.UpdateOne(
 		ctx,
 		model.UserFilter{ID: &id},
 		update,
@@ -323,7 +326,7 @@ func (uc *User) UpdateByID(
 		return model.User{}, err
 	}
 
-	return updateUser, nil
+	return updatedUser, nil
 }
 
 func (uc *User) DeleteByID(ctx context.Context, token model.Token, id string) (model.User, error) {
