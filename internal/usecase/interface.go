@@ -12,3 +12,9 @@ type UserRepository interface {
 	UpdateOne(ctx context.Context, filter model.UserFilter, update model.User) (model.User, error)
 	DeleteOne(ctx context.Context, filter model.UserFilter) (model.User, error)
 }
+
+type TokenRepository interface {
+	InsertOne(ctx context.Context, session model.Session) error
+	FindOneByToken(ctx context.Context, token string) (model.Session, error)
+	DeleteByToken(ctx context.Context, token string) error
+}
