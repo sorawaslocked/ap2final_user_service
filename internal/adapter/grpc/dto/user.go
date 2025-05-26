@@ -7,11 +7,18 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ToUserFromRegisterRequest(req *svc.RegisterRequest) (model.User, error) {
+func ToUserFromRegisterRequest(req *svc.RegisterRequest) model.User {
 	return model.User{
 		Email:    req.Email,
 		Password: req.Password,
-	}, nil
+	}
+}
+
+func ToUserFromLoginRequest(req *svc.LoginRequest) model.User {
+	return model.User{
+		Email:    req.Email,
+		Password: req.Password,
+	}
 }
 
 func ToUserUpdateFromUpdateRequest(req *svc.UpdateRequest) (

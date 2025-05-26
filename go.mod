@@ -8,7 +8,7 @@ require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/ilyakaznacheev/cleanenv v1.5.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/sorawaslocked/ap2final_base v1.0.10 // indirect
+	github.com/sorawaslocked/ap2final_base v1.0.11 // indirect
 	github.com/sorawaslocked/ap2final_protos_gen v1.0.4 // indirect
 	go.mongodb.org/mongo-driver v1.17.3 // indirect
 	golang.org/x/net v0.35.0 // indirect
