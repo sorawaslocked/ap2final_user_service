@@ -1,0 +1,10 @@
+env: "local"
+
+mongo:
+  database: "users"
+  uri: "localhost:27017"
+
+server:
+  grpc:
+    port: 9998
+    timeout: 10h
