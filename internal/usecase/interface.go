@@ -18,3 +18,7 @@ type TokenRepository interface {
 	FindOneByToken(ctx context.Context, token string) (model.Session, error)
 	DeleteByToken(ctx context.Context, token string) error
 }
+
+type UserEventStorage interface {
+	Push(ctx context.Context, user model.User) error
+}
