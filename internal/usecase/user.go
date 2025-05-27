@@ -13,6 +13,7 @@ type User struct {
 	log         *slog.Logger
 	repo        UserRepository
 	tokenRepo   TokenRepository
+	producer    UserEventStorage
 	jwtProvider *security.JWTProvider
 }
 
@@ -20,12 +21,14 @@ func NewUser(
 	log *slog.Logger,
 	repo UserRepository,
 	tokenRepo TokenRepository,
+	producer UserEventStorage,
 	jwtProvider *security.JWTProvider,
 ) *User {
 	return &User{
 		log:         log,
 		repo:        repo,
 		tokenRepo:   tokenRepo,
+		producer:    producer,
 		jwtProvider: jwtProvider,
 	}
 }
@@ -51,6 +54,13 @@ func (uc *User) Register(ctx context.Context, user model.User) (model.User, erro
 	createdUser, err := uc.repo.InsertOne(ctx, user)
 	if err != nil {
 		log.Error("creating user", logger.Err(err))
+
+		return model.User{}, err
+	}
+
+	err = uc.producer.Push(ctx, createdUser)
+	if err != nil {
+		log.Error("pushing event", logger.Err(err))
 
 		return model.User{}, err
 	}

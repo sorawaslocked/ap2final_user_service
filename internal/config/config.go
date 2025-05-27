@@ -5,6 +5,7 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/sorawaslocked/ap2final_base/pkg/grpc"
 	"github.com/sorawaslocked/ap2final_base/pkg/mongo"
+	"github.com/sorawaslocked/ap2final_base/pkg/nats"
 	"os"
 )
 
@@ -13,6 +14,7 @@ type (
 		Env    string       `yaml:"env" env-required:"true"`
 		Mongo  mongo.Config `yaml:"mongo" env-required:"true"`
 		Server Server       `yaml:"server" env-required:"true"`
+		Nats   nats.Config  `yaml:"nats" env-required:"true"`
 	}
 
 	Server struct {

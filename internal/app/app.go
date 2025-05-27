@@ -4,9 +4,11 @@ import (
 	"context"
 	"github.com/sorawaslocked/ap2final_base/pkg/logger"
 	mongocfg "github.com/sorawaslocked/ap2final_base/pkg/mongo"
+	natscfg "github.com/sorawaslocked/ap2final_base/pkg/nats"
 	"github.com/sorawaslocked/ap2final_base/pkg/security"
 	grpcserver "github.com/sorawaslocked/ap2final_user_service/internal/adapter/grpc"
 	mongorepo "github.com/sorawaslocked/ap2final_user_service/internal/adapter/mongo"
+	"github.com/sorawaslocked/ap2final_user_service/internal/adapter/nats/producer"
 	"github.com/sorawaslocked/ap2final_user_service/internal/config"
 	"github.com/sorawaslocked/ap2final_user_service/internal/usecase"
 	"log/slog"
@@ -43,6 +45,17 @@ func New(
 		return nil, err
 	}
 
+	newLog.Info("connecting to nats", slog.Any("hosts", cfg.Nats.Hosts))
+	natsClient, err := natscfg.NewClient(ctx, cfg.Nats.Hosts, cfg.Nats.Nkey, cfg.Nats.IsTest)
+	if err != nil {
+		newLog.Error("connecting to nats", logger.Err(err))
+
+		return nil, err
+	}
+	newLog.Info("connected to nats", slog.String("connection status", natsClient.Conn.Status().String()))
+
+	userProducer := producer.NewUserProducer(natsClient, cfg.Nats.NatsSubjects.UserEventSubject)
+
 	jwtProvider := security.NewJWTProvider(
 		"secretKey",
 		time.Minute*15,
@@ -52,7 +65,7 @@ func New(
 	userRepo := mongorepo.NewUser(db.Connection)
 	tokenRepo := mongorepo.NewSession(db.Connection)
 
-	userUseCase := usecase.NewUser(log, userRepo, tokenRepo, jwtProvider)
+	userUseCase := usecase.NewUser(log, userRepo, tokenRepo, userProducer, jwtProvider)
 
 	grpcServer := grpcserver.New(cfg.Server.GRPC, log, userUseCase, jwtProvider)
 

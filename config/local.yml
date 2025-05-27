@@ -8,3 +8,9 @@ server:
   grpc:
     port: 9998
     timeout: 10h
+
+nats:
+  hosts: ["localhost:4222","localhost:4222","localhost:4222"]
+  nkey: "SUACSSL3UAHUDXKFSNVUZRF5UHPMWZ6BFDTJ7M6USDXIEDNPPQYYYCU3VY"
+  natsSubjects:
+    userEventSubject: "user_svc.event.register"
